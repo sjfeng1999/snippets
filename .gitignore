@@ -1,0 +1,9 @@
+.vscode/
+build/
+build-debug/
+
+*.a
+*.o
+*.out
+
+TODO
