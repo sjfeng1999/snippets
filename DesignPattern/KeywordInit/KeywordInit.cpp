@@ -28,10 +28,10 @@ struct InitParam {
 
 class KeywordInit {
   public:
-    KeywordInit(InitParam param = {}) {
-        str_ = param.str_;
-        index_ = param.index_;
-        value_ = param.value_;
+    KeywordInit(InitParam&& param = {}) {
+        str_ = std::move(param.str_);
+        index_ = std::move(param.index_);
+        value_ = std::move(param.value_);
     }
 
     void show() {
@@ -49,7 +49,7 @@ int main() {
     // default init
     KeywordInit k1{};
     // keyword init
-    KeywordInit k2{InitParam().str("By keyword init").index(4)};
+    KeywordInit k2{std::move(InitParam().str("By keyword init").index(4))};
     k1.show();
     k2.show();
     return 0;
