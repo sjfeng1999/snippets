@@ -19,14 +19,14 @@ struct ToAnyFieldType {
 };
 
 template<typename Tp, size_t... Index>
-consteval auto Impl(std::index_sequence<Index...>) -> decltype(Tp{ToAnyFieldType{Index}...});
-
-template<typename Tp, size_t... Index>
-consteval int Impl(...);
-
-template<typename Tp, size_t... Index>
+    requires requires { Tp{ToAnyFieldType{Index}...}; }
 consteval auto FieldCountGuessImpl(std::index_sequence<Index...> index_seq) {
-    return !std::is_same_v<decltype(Impl<Tp>(index_seq)), int>;
+    return true;
+}
+
+template<typename Tp, size_t... Index>
+consteval auto FieldCountGuessImpl(...) {
+    return false;
 }
 
 template<typename Tp, int GieldCount>
