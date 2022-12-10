@@ -2,11 +2,6 @@
 #include <type_traits>
 #include <utility>
 
-struct Foo {
-    int a;
-    float b;
-};
-
 struct ToAnyFieldType {
     size_t ignore;
 
@@ -29,21 +24,37 @@ consteval auto FieldCountGuessImpl(...) {
     return false;
 }
 
-template<typename Tp, int GieldCount>
-consteval bool FieldCountGuess() {
-    return FieldCountGuessImpl<Tp>(std::make_index_sequence<GieldCount>{});
+template<typename Tp, size_t Low, size_t High>
+consteval size_t getFieldCountImpl() {
+    if constexpr (Low == High) {
+        return Low;
+    }
+    constexpr size_t kMid = (Low + High + 1) >> 1;
+    if constexpr (FieldCountGuessImpl<Tp>(std::make_index_sequence<kMid>{})) {
+        return getFieldCountImpl<Tp, kMid, High>();
+    } else {
+        return getFieldCountImpl<Tp, Low, kMid - 1>();
+    }
 }
 
+template<typename Tp>
+consteval size_t getFieldCount() {
+    return getFieldCountImpl<Tp, 0, sizeof(Tp)>();
+}
+
+struct struct2field {
+    int a;
+    float b;
+};
+
+struct struct3field {
+    int a;
+    float b;
+    char c;
+};
+
 int main() {
-    std::cout << "Guess Class Foo field count is greater than or equal to 1 : "
-              << (FieldCountGuess<Foo, 1>() ? "true" : "false") << "\n"
-              << "Guess Class Foo field count is greater than or equal to 2 : "
-              << (FieldCountGuess<Foo, 2>() ? "true" : "false") << "\n"
-              << "Guess Class Foo field count is greater than or equal to 3 : "
-              << (FieldCountGuess<Foo, 3>() ? "true" : "false") << "\n";
-    Foo f;
-    auto& [a, b] = f;
-    std::cout << "First field type : " << typeid(decltype(a)).name() << "\n"
-              << "Second field type : " << typeid(decltype(b)).name() << "\n";
+    std::cout << "Class field count is : " << getFieldCount<struct2field>() << "\n"
+              << "Class field count is : " << getFieldCount<struct3field>() << "\n";
     return 0;
 }
