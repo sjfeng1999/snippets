@@ -42,6 +42,26 @@ consteval size_t getFieldCount() {
     return getFieldCountImpl<Tp, 0, sizeof(Tp)>();
 }
 
+#if defined(__cpp_concepts)
+// clang-format off
+template<typename Tp>
+consteval size_t getFieldCount_since_cxx20() {
+    if constexpr (requires {[](Tp val) {auto [a, b, c, d] = val;};}) {
+        return 4;
+    } else if constexpr (requires {[](Tp val) {auto [a, b, c] = val;};}) {
+        return 3;
+    } else if constexpr (requires {[](Tp val) {auto [a, b] = val;};}) {
+        return 2;
+    } else if constexpr (requires {[](Tp val) {auto [a] = val;};}) {
+        return 1;
+    } else{
+        return 0;
+    }
+}
+
+// clang-format on
+#endif
+
 struct struct2field {
     int a;
     float b;
@@ -56,5 +76,10 @@ struct struct3field {
 int main() {
     std::cout << "Class field count is : " << getFieldCount<struct2field>() << "\n"
               << "Class field count is : " << getFieldCount<struct3field>() << "\n";
+
+#if defined(__cpp_concepts)
+    std::cout << "since_cxx20 Class field count is : " << getFieldCount_since_cxx20<struct2field>() << "\n"
+              << "since_cxx20 Class field count is : " << getFieldCount_since_cxx20<struct3field>() << "\n";
+#endif
     return 0;
 }
